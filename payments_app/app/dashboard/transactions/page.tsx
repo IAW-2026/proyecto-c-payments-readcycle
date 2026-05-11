@@ -1,4 +1,6 @@
 import TransactionsList from "../../../components/ui/OperationList";
+import Link from "next/link";
+import Image from "next/image";
 
 const transactions = [
   {
@@ -31,19 +33,33 @@ export default function TransactionsPage() {
   return (
     <main className="min-h-screen bg-zinc-100 p-8">
 
-      <div className="mb-8">
-        <h1 className="text-5xl font-bold text-zinc-800">
-          Historial de transacciones
-        </h1>
+      <div className="mb-8 flex item-start justify-between">
+        <div>
+          <h1 className="text-5xl font-bold text-zinc-800">
+            Historial de transacciones
+          </h1>
 
-        <p className="mt-2 text-zinc-500">
-          Historial detallado de las transacciones accionadas por tu cuenta.
-        </p>
+          <p className="mt-2 text-zinc-500">
+            Historial detallado de las transacciones accionadas por tu cuenta.
+          </p>
+        </div>
+
+        <Link
+            href="/dashboard">
+            <Image
+              src="/LogoSinTexto.png"
+              alt="RC logo"
+              width={70}
+              height={20}
+              priority
+            />
+          </Link>
       </div>
 
       <TransactionsList
         title="Transacciones"
         items={transactions}
+        link="/dashboard/transactions"
       />
 
     </main>

@@ -34,7 +34,8 @@ export default function DashboardList({
 
       <div className="flex-1 overflow-y-auto">
         {items.map((item) => (
-          <div
+          <Link
+            href={`${link}/${item.id}`}
             key={item.id}
             className="flex items-center justify-between border-b border-zinc-100 px-5 py-4 transition-colors hover:bg-zinc-50"
           >
@@ -56,7 +57,7 @@ export default function DashboardList({
                 {item.amount}
               </span>
             )}
-          </div>
+          </Link>
         ))}
       </div>
     </div>

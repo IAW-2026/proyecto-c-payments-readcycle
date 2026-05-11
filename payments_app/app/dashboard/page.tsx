@@ -62,13 +62,16 @@ export default function DashboardPage() {
             Historiales actualizados de tus transacciones y disputas
           </p>
         </div>
-          <Image
-            src="/LogoSinTexto.png"
-            alt="RC logo"
-            width={70}
-            height={20}
-            priority
-          />
+          <Link
+            href="/dashboard">
+            <Image
+              src="/LogoSinTexto.png"
+              alt="RC logo"
+              width={70}
+              height={20}
+              priority
+            />
+          </Link>
         </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

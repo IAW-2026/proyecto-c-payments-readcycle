@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type TransactionItem = {
   id: string;
   title: string;
@@ -8,11 +10,13 @@ type TransactionItem = {
 type TransactionsListProps = {
   title: string;
   items: TransactionItem[];
+  link: string;
 };
 
 export default function TransactionsList({
   title,
   items,
+  link,
 }: TransactionsListProps) {
   return (
     <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
@@ -29,7 +33,8 @@ export default function TransactionsList({
 
       <div className="flex flex-col">
         {items.map((item, index) => (
-          <div
+          <Link
+            href={`${link}/${item.id}`}
             key={item.id}
             className={`flex items-center justify-between border-b border-zinc-100 px-6 py-5 transition-colors hover:bg-zinc-50 ${
               index === 0 ? "border-l-4 border-l-green-500 bg-green-50/40" : ""
@@ -59,7 +64,7 @@ export default function TransactionsList({
                 {item.amount}
               </span>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </div>
