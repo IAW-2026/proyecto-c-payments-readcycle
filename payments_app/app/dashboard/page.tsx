@@ -1,56 +1,60 @@
 import DashboardList from "../../components/ui/OperationsListDash";
 import Image from "next/image";
 import Link from "next/link";
+import { headers } from "next/headers";
 
-const transactions = [
-  {
-    id: "1",
-    title: "La Republica",
-    subtitle: "May 10, 2024 • En proceso",
-    amount: "$26,000.00",
-  },
-  {
-    id: "2",
-    title: "Como hacer amigos e influenciar a las personas",
-    subtitle: "May 10, 2024 • En proceso",
-    amount: "$12,500.00",
-  },
-  {
-    id: "3",
-    title: "Metro 2033",
-    subtitle: "May 1, 2024 • Cerrado",
-    amount: "$15,000.50",
-  },
-  {
-    id: "4",
-    title: "Metro 2034",
-    subtitle: "May 1, 2024 • Cerrado",
-    amount: "$20,000.00",
-  },
-];
+async function getTransactions() {
+  const headersList = await headers();
+  const res = await fetch(
+    "http://localhost:3001/api/payments/transactions",
+    {
+      cache: "no-store",
+      headers: {
+        cookie: headersList.get("cookie") || "",
+      },
+    }
+  );
+  if (!res.ok) {
+    throw new Error("Failed to fetch transactions");
+  }
+  return res.json();
+}
 
-const disputes = [
-  {
-    id: "1",
-    title: "Transaccion 58266",
-    subtitle: "Cobro doble • En revision",
-    amount: "$45000.00",
-  },
-  {
-    id: "2",
-    title: "Transaccion 34596",
-    subtitle: "Fallo pago • En revision",
-    amount: "$10,200.00",
-  },
-  {
-    id: "3",
-    title: "Transaccion 34589",
-    subtitle: "Pago resuelto • Cerrado",
-    amount: "$89.99",
-  },
-];
+async function getDisputes() {
+  const headersList = await headers();
+  const res = await fetch(
+    "http://localhost:3001/api/payments/disputes",
+    {
+      cache: "no-store",
+      headers: {
+        cookie: headersList.get("cookie") || "",
+      },
+    }
+  );
+  if (!res.ok) {
+    throw new Error("Failed to fetch disputes");
+  }
+  return res.json();
+}
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const [transactionsData, disputesData] = await Promise.all([
+    getTransactions(),
+    getDisputes(),
+  ]);
+  const transactions = transactionsData.map((transaction: any) => ({
+    id: transaction.id,
+    title: transaction.orderId,
+    subtitle: `${new Date(transaction.createdAt).toLocaleDateString("es-AR")} • ${transaction.status}`,
+    amount: `$${transaction.amount}`,
+  }));
+  const disputes = disputesData.map((dispute: any) => ({
+    id: dispute.id,
+    title: `Transaccion ${dispute.transaction?.orderId || "Orden sin identificar"}`,
+    subtitle: `${dispute.reason} • ${dispute.status}`,
+    amount: `$${dispute.transaction?.amount || 0}`,
+  }));
+
   return (
     <main className="min-h-screen bg-zinc-100 p-8">
       <div className="mb-8 flex items-start justify-between">
@@ -62,17 +66,16 @@ export default function DashboardPage() {
             Historiales actualizados de tus transacciones y disputas
           </p>
         </div>
-          <Link
-            href="/dashboard">
-            <Image
-              src="/LogoSinTexto.png"
-              alt="RC logo"
-              width={70}
-              height={20}
-              priority
-            />
-          </Link>
-        </div>
+        <Link href="/dashboard">
+          <Image
+            src="/LogoSinTexto.png"
+            alt="RC logo"
+            width={70}
+            height={20}
+            priority
+          />
+        </Link>
+      </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <DashboardList
@@ -90,13 +93,15 @@ export default function DashboardPage() {
       <div className="mt-10 flex justify-center gap-20">
         <Link
           href="/checkout"
-          className="rounded-xl bg-green-500 px-8 py-4 font-semibold text-white shadow-md transition-colors hover:bg-green-600">
-            Pagar ahora
+          className="rounded-xl bg-green-500 px-8 py-4 font-semibold text-white shadow-md transition-colors hover:bg-green-600"
+        >
+          Simular Pago
         </Link>
         <Link
           href="/dashboard/disputes/new"
-          className="rounded-xl bg-green-500 px-8 py-4 font-semibold text-white shadow-md transition-colors hover:bg-green-600">
-            Crear disputa
+          className="rounded-xl bg-green-500 px-8 py-4 font-semibold text-white shadow-md transition-colors hover:bg-green-600"
+        >
+          Crear disputa
         </Link>
       </div>
     </main>

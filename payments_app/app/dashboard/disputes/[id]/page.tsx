@@ -1,13 +1,34 @@
-const dispute = {
-    id: "1",
-    date: "10 May 2024",
-    transID: "Transaccion 58266",
-    status: "Resuelta",
-    reason: "Se cobro dos veces en mi cuenta",
-    resolution: "Dinero adjudicado de nuevo en forma de cupon",
-  };
+import { headers } from "next/headers";
 
-export default function DisputePage() {
+async function getDispute(id: string) {
+  const headersList = await headers();
+
+  const res = await fetch(
+    `http://localhost:3001/api/payments/disputes/${id}`,
+    {
+      cache: "no-store",
+
+      headers: {
+        cookie: headersList.get("cookie") || "",
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch dispute");
+  }
+  return res.json();
+}
+
+export default async function DisputePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  const dispute = await getDispute(id);
+
   return (
     <main className="min-h-screen bg-zinc-100 p-8">
       <div className="mx-auto max-w-2xl">
@@ -21,22 +42,37 @@ export default function DisputePage() {
               <span className="font-medium text-zinc-500">
                 Fecha
               </span>
+
               <span className="font-semibold text-zinc-800">
-                {dispute.date}
+                {new Date(dispute.createdAt).toLocaleDateString("es-AR")}
               </span>
             </div>
+
             <div className="flex items-center justify-between">
               <span className="font-medium text-zinc-500">
-                ID de Transaccion 
+                ID de Transaccion
               </span>
+
               <span className="font-semibold text-zinc-800">
-                {dispute.transID}
+                {dispute.transaction.orderId}
               </span>
             </div>
+
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-zinc-500">
+                Costo de transaccion
+              </span>
+
+              <span className="font-semibold text-zinc-800">
+                {dispute.transaction.amount}
+              </span>
+            </div>
+
             <div className="flex items-center justify-between">
               <span className="font-medium text-zinc-500">
                 Estado
               </span>
+
               <span className="rounded-lg bg-zinc-100 px-3 py-1 text-sm font-semibold text-zinc-600">
                 {dispute.status}
               </span>
@@ -45,23 +81,25 @@ export default function DisputePage() {
 
           <div className="my-8 border-t border-zinc-200" />
 
-          <div>
-            <div className="rounded-xl bg-zinc-100 p-5">
-              <h3 className="mb-5 text-sm font-bold uppercase tracking-wide text-zinc-500">
-                Motivo
-              </h3>
-              <div className="my-4 border-t border-zinc-300" />
-              <span className="font-medium text-zinc-800">
-                {dispute.reason}
-              </span>
-            </div>
+          <div className="rounded-xl bg-zinc-100 p-5">
+            <h3 className="mb-5 text-sm font-bold uppercase tracking-wide text-zinc-500">
+              Motivo
+            </h3>
+
+            <div className="my-4 border-t border-zinc-300" />
+
+            <span className="font-medium text-zinc-800">
+              {dispute.reason}
+            </span>
           </div>
 
-          <div className="rounded-xl bg-zinc-100 p-5">
+          <div className="mt-6 rounded-xl bg-zinc-100 p-5">
             <h3 className="mb-5 text-sm font-bold uppercase tracking-wide text-zinc-500">
               Resolucion
             </h3>
-          <div className="my-4 border-t border-zinc-300" />
+
+            <div className="my-4 border-t border-zinc-300" />
+
             <span className="font-medium text-zinc-800">
               {dispute.resolution}
             </span>

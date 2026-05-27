@@ -2,28 +2,38 @@ import DisputesList from "../../../components/ui/OperationList";
 import Link from "next/link";
 import Image from "next/image";
 
-const disputes = [
-  {
-    id: "1",
-    title: "Transaccion 58266",
-    subtitle: "Cobro doble • En revision",
-    amount: "$45000.00",
-  },
-  {
-    id: "2",
-    title: "Transaccion 34596",
-    subtitle: "Fallo pago • En revision",
-    amount: "$10,200.00",
-  },
-  {
-    id: "3",
-    title: "Transaccion 34589",
-    subtitle: "Pago resuelto • Cerrado",
-    amount: "$89.99",
-  },
-];
+import { headers } from "next/headers";
 
-export default function DisputesPage() {
+async function getDisputes() {
+  const headersList = await headers();
+
+  const res = await fetch(
+    "http://localhost:3001/api/payments/disputes",
+    {
+      cache: "no-store",
+
+      headers: {
+        cookie: headersList.get("cookie") || "",
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch disputes");
+  }
+  return res.json();
+}
+
+export default async function DisputesPage() {
+  const disputesData = await getDisputes();
+
+  const disputes = disputesData.map((dispute: any) => ({
+    id: dispute.id,
+    title:dispute.transaction?.orderId || "Orden sin identificar",
+    subtitle: `${dispute.reason} • ${dispute.status}`,
+    amount: `$${dispute.transaction?.amount || 0}`,
+  }));
+
   return (
     <main className="min-h-screen bg-zinc-100 p-8">
 

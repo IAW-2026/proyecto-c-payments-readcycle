@@ -2,34 +2,37 @@ import TransactionsList from "../../../components/ui/OperationList";
 import Link from "next/link";
 import Image from "next/image";
 
-const transactions = [
-  {
-    id: "1",
-    title: "La Republica",
-    subtitle: "May 10, 2024 • En proceso",
-    amount: "$26,000.00",
-  },
-  {
-    id: "2",
-    title: "Como hacer amigos e influenciar a las personas",
-    subtitle: "May 10, 2024 • En proceso",
-    amount: "$12,500.00",
-  },
-  {
-    id: "3",
-    title: "Metro 2033",
-    subtitle: "May 1, 2024 • Cerrado",
-    amount: "$15,000.50",
-  },
-  {
-    id: "4",
-    title: "Metro 2034",
-    subtitle: "May 1, 2024 • Cerrado",
-    amount: "$20,000.00",
-  },
-];
+import { headers } from "next/headers";
 
-export default function TransactionsPage() {
+async function getTransactions() {
+  const headersList = await headers();
+
+  const res = await fetch(
+    "http://localhost:3001/api/payments/transactions",
+    {
+      cache: "no-store",
+
+      headers: {
+        cookie: headersList.get("cookie") || "",
+      },
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch transactions");
+  }
+  return res.json();
+}
+
+export default async function TransactionsPage() {
+  const transactionsData = await getTransactions();
+  const transactions = transactionsData.map((transaction: any) => ({
+    id: transaction.id,
+    title: transaction.orderId,
+    subtitle: `${new Date(transaction.createdAt).toLocaleDateString("es-AR")} • ${transaction.status}`,
+    amount: `$${transaction.amount}`,
+  }));
+
   return (
     <main className="min-h-screen bg-zinc-100 p-8">
 
