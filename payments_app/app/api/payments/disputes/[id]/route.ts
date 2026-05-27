@@ -30,11 +30,64 @@ export async function GET(
     }
 
     const { id } = await params;
-    
+
+    // ADMIN puede ver cualquier disputa
+    if (user.roles.includes("ADMIN")) {
+      const dispute = await prisma.dispute.findUnique({
+        where: {
+          id,
+        },
+
+        include: {
+          transaction: {
+            select: {
+              orderId: true,
+              amount: true,
+              status: true,
+            },
+          },
+        },
+      });
+
+      if (!dispute) {
+        return NextResponse.json(
+          { error: "Dispute not found" },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json(dispute);
+    }
+
+    const filters = [];
+
+    if (user.roles.includes("BUYER")) {
+      filters.push({
+        transaction: {
+          buyerId: user.id,
+        },
+      });
+    }
+
+    if (user.roles.includes("SELLER")) {
+      filters.push({
+        transaction: {
+          sellerId: user.id,
+        },
+      });
+    }
+
+    if (filters.length === 0) {
+      return NextResponse.json(
+        { error: "User has no valid roles" },
+        { status: 403 }
+      );
+    }
+
     const dispute = await prisma.dispute.findFirst({
       where: {
         id,
-        userId: user.id,
+        OR: filters,
       },
       include: {
         transaction: {

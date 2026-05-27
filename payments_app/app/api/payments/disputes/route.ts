@@ -26,15 +26,55 @@ export async function GET() {
       );
     }
 
+    // ADMIN ve todas
+    if (user.roles.includes("ADMIN")) {
+      const disputes = await prisma.dispute.findMany({
+        include: {
+          transaction: true,
+        },
+
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+
+      return NextResponse.json(disputes);
+    }
+
+    const filters = [];
+
+    if (user.roles.includes("BUYER")) {
+      filters.push({
+        transaction: {
+          buyerId: user.id,
+        },
+      });
+    }
+
+    if (user.roles.includes("SELLER")) {
+      filters.push({
+        transaction: {
+          sellerId: user.id,
+        },
+      });
+    }
+
+    if (filters.length === 0) {
+      return NextResponse.json(
+        { error: "User has no valid roles" },
+        { status: 403 }
+      );
+    }
+
     const disputes = await prisma.dispute.findMany({
       where: {
-       userId: user.id,
+        OR: filters,
       },
       include: {
         transaction: true,
       },
       orderBy: {
-       createdAt: "desc",
+        createdAt: "desc",
       },
     });
     return NextResponse.json(disputes);

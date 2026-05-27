@@ -28,10 +28,7 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
-    const {
-      transactionId,
-      reason,
-    } = body;
+    const { transactionId, reason } = body;
 
     if (!transactionId || !reason) {
       return NextResponse.json(
@@ -40,37 +37,78 @@ export async function POST(req: Request) {
       );
     }
 
+    // ADMIN no crea disputas
+    if (user.roles.includes("ADMIN")) {
+      return NextResponse.json(
+        { error: "Admins no pueden crear disputas" },
+        { status: 403 }
+      );
+    }
+
+    const filters = [];
+
+    if (user.roles.includes("BUYER")) {
+      filters.push({
+        buyerId: user.id,
+      });
+    }
+
+    if (user.roles.includes("SELLER")) {
+      filters.push({
+        sellerId: user.id,
+      });
+    }
+
+    if (filters.length === 0) {
+      return NextResponse.json(
+        { error: "Usuario sin permisos válidos" },
+        { status: 403 }
+      );
+    }
+
     const transaction = await prisma.transaction.findFirst({
       where: {
         id: transactionId,
-        userId: user.id,
+        OR: filters,
       },
       include: {
-        disputes: true,
+        dispute: true,
       },
     });
 
     if (!transaction) {
       return NextResponse.json(
-        { error: "Transaccion no encontrada" },
+        { error: "Transacción no encontrada" },
         { status: 404 }
       );
     }
 
-    if (transaction.disputes) {
+    // Ya existe disputa
+    if (transaction.dispute) {
       return NextResponse.json(
-        { error: "Ya existe una disputa" },
+        { error: "Ya existe una disputa para esta transacción" },
         { status: 400 }
       );
     }
 
     const dispute = await prisma.dispute.create({
       data: {
-        userId: user.id,
+        userId: user.id, // quien creó la disputa
         transactionId: transaction.id,
         reason,
-        status: "Abierta",
+
+        status: "OPEN",
+
         resolution: "Pendiente de revisión",
+      },
+      include: {
+        transaction: {
+          select: {
+            orderId: true,
+            amount: true,
+            status: true,
+          },
+        },
       },
     });
 
