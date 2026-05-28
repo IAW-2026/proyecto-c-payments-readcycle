@@ -19,7 +19,7 @@ export default function CreateDisputePage() {
       setLoading(true);
 
       const res = await fetch(
-        "http://localhost:3001/api/payments/disputes/new",
+        "/api/payments/disputes/new",
         {
           method: "POST",
 
