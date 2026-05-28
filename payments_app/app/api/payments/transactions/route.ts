@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import prisma from "@/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const { userId: clerkUserId } = await auth();
 
@@ -26,7 +26,11 @@ export async function GET() {
       );
     }
 
-    const filters = [];
+    const { searchParams } = new URL(request.url);
+    const pageParam = searchParams.get("page");
+    const limitParam = searchParams.get("limit") || "5";
+
+    const filters: any[] = [];
 
     if (user.roles.includes("BUYER")) {
       filters.push({
@@ -40,28 +44,51 @@ export async function GET() {
       });
     }
 
-    if (user.roles.includes("ADMIN")) {
+    // Build the where filter condition
+    let whereCondition: any = undefined;
+    if (!user.roles.includes("ADMIN")) {
+      if (filters.length === 0) {
+        return NextResponse.json(
+          { error: "User has no valid roles" },
+          { status: 403 }
+        );
+      }
+      whereCondition = {
+        OR: filters,
+      };
+    }
+
+    // If page parameter is supplied, return paginated results
+    if (pageParam) {
+      const page = parseInt(pageParam) || 1;
+      const limit = parseInt(limitParam) || 5;
+      const skip = (page - 1) * limit;
+
+      const total = await prisma.transaction.count({
+        where: whereCondition,
+      });
+
       const transactions = await prisma.transaction.findMany({
+        where: whereCondition,
         orderBy: {
           createdAt: "desc",
         },
+        skip,
+        take: limit,
       });
 
-      return NextResponse.json(transactions);
+      return NextResponse.json({
+        data: transactions,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      });
     }
 
-    if (filters.length === 0) {
-      return NextResponse.json(
-        { error: "User has no valid roles" },
-        { status: 403 }
-      );
-    }
-
+    // Default: return all transactions (backward compatible)
     const transactions = await prisma.transaction.findMany({
-      where: {
-        OR: filters,
-      },
-
+      where: whereCondition,
       orderBy: {
         createdAt: "desc",
       },
