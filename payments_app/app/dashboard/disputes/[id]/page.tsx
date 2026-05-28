@@ -1,33 +1,69 @@
-import { headers } from "next/headers";
+"use client";
 
-async function getDispute(id: string) {
-  const headersList = await headers();
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
-  const res = await fetch(
-    `http://localhost:3001/api/payments/disputes/${id}`,
-    {
-      cache: "no-store",
-
-      headers: {
-        cookie: headersList.get("cookie") || "",
-      },
-    }
-  );
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch dispute");
-  }
-  return res.json();
+interface Dispute {
+  id: string;
+  createdAt: string;
+  transaction: {
+    orderId: string;
+    amount: number;
+    status: string;
+  };
+  status: string;
+  reason: string;
+  resolution: string | null;
 }
 
-export default async function DisputePage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import ErrorCard from "@/components/ui/ErrorCard";
 
-  const dispute = await getDispute(id);
+export default function DisputePage() {
+  const params = useParams();
+  const id = params?.id as string;
+  const [dispute, setDispute] = useState<Dispute | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id) return;
+
+    async function fetchDispute() {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetch(`/api/payments/disputes/${id}`);
+        if (!res.ok) {
+          throw new Error("Failed to fetch dispute");
+        }
+        const data = await res.json();
+        setDispute(data);
+      } catch (err) {
+        console.error(err);
+        const errorMessage = err instanceof Error ? err.message : "Failed to fetch dispute";
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDispute();
+  }, [id]);
+
+  if (loading) {
+    return <LoadingSpinner message="Cargando detalles de la disputa..." />;
+  }
+
+  if (error || !dispute) {
+    return (
+      <ErrorCard
+        title="Error"
+        message={error || "No se encontró la disputa"}
+        onRetry={() => window.location.reload()}
+      />
+    );
+  }
 
   return (
     <main className="min-h-screen bg-zinc-100 p-8">
@@ -101,7 +137,7 @@ export default async function DisputePage({
             <div className="my-4 border-t border-zinc-300" />
 
             <span className="font-medium text-zinc-800">
-              {dispute.resolution}
+              {dispute.resolution || "Pendiente de resolución"}
             </span>
           </div>
         </div>

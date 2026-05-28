@@ -1,32 +1,67 @@
+"use client";
+
 import PaymentDetails from "../../../../components/ui/UniqueOperation";
-import { headers } from "next/headers";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
-async function getTransaction(id: string) {
-  const headersList = await headers();
-  const res = await fetch(
-    `http://localhost:3001/api/payments/transactions/${id}`,
-    {
-      cache: "no-store",
-      headers: {
-        cookie: headersList.get("cookie") || "",
-      },
-    }
-  );
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import ErrorCard from "@/components/ui/ErrorCard";
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch transaction");
-  }
-  return res.json();
+interface Transaction {
+  id: string;
+  createdAt: string;
+  paymentMethod: string | null;
+  status: string;
+  orderId: string;
+  amount: number;
 }
 
-export default async function PaymentPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
+export default function PaymentPage() {
+  const params = useParams();
+  const id = params?.id as string;
+  const [transaction, setTransaction] = useState<Transaction | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const transaction = await getTransaction(id);
+  useEffect(() => {
+    if (!id) return;
+
+    async function fetchTransaction() {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetch(`/api/payments/transactions/${id}`);
+        if (!res.ok) {
+          throw new Error("Failed to fetch transaction");
+        }
+        const data = await res.json();
+        setTransaction(data);
+      } catch (err) {
+        console.error(err);
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to fetch transaction";
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchTransaction();
+  }, [id]);
+
+  if (loading) {
+    return <LoadingSpinner message="Cargando detalles del pago..." />;
+  }
+
+  if (error || !transaction) {
+    return (
+      <ErrorCard
+        title="Error"
+        message={error || "No se encontró la transacción"}
+        onRetry={() => window.location.reload()}
+      />
+    );
+  }
 
   return (
     <main className="min-h-screen bg-zinc-100 p-8">

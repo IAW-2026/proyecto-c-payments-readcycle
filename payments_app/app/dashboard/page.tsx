@@ -1,59 +1,76 @@
+"use client";
+
 import DashboardList from "../../components/ui/OperationsListDash";
 import Image from "next/image";
 import Link from "next/link";
-import { headers } from "next/headers";
+import { useEffect, useState } from "react";
 
-async function getTransactions() {
-  const headersList = await headers();
-  const res = await fetch(
-    "http://localhost:3001/api/payments/transactions",
-    {
-      cache: "no-store",
-      headers: {
-        cookie: headersList.get("cookie") || "",
-      },
+import ErrorCard from "@/components/ui/ErrorCard";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+
+export default function DashboardPage() {
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [disputes, setDisputes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        setError(null);
+        const [transactionsRes, disputesRes] = await Promise.all([
+          fetch("/api/payments/transactions"),
+          fetch("/api/payments/disputes"),
+        ]);
+
+        if (!transactionsRes.ok || !disputesRes.ok) {
+          throw new Error("Error al obtener los datos de la base de datos");
+        }
+
+        const transactionsData = await transactionsRes.json();
+        const disputesData = await disputesRes.json();
+
+        const formattedTransactions = transactionsData.map((transaction: any) => ({
+          id: transaction.id,
+          title: transaction.orderId,
+          subtitle: `${new Date(transaction.createdAt).toLocaleDateString("es-AR")} • ${transaction.status}`,
+          amount: `$${transaction.amount}`,
+        }));
+
+        const formattedDisputes = disputesData.map((dispute: any) => ({
+          id: dispute.id,
+          title: `Transaccion ${dispute.transaction?.orderId || "Orden sin identificar"}`,
+          subtitle: `${dispute.reason} • ${dispute.status}`,
+          amount: `$${dispute.transaction?.amount || 0}`,
+        }));
+
+        setTransactions(formattedTransactions);
+        setDisputes(formattedDisputes);
+      } catch (err) {
+        console.error(err);
+        setError(err instanceof Error ? err.message : "Error desconocido");
+      } finally {
+        setLoading(false);
+      }
     }
-  );
-  if (!res.ok) {
-    throw new Error("Failed to fetch transactions");
-  }
-  return res.json();
-}
 
-async function getDisputes() {
-  const headersList = await headers();
-  const res = await fetch(
-    "http://localhost:3001/api/payments/disputes",
-    {
-      cache: "no-store",
-      headers: {
-        cookie: headersList.get("cookie") || "",
-      },
-    }
-  );
-  if (!res.ok) {
-    throw new Error("Failed to fetch disputes");
-  }
-  return res.json();
-}
+    fetchData();
+  }, []);
 
-export default async function DashboardPage() {
-  const [transactionsData, disputesData] = await Promise.all([
-    getTransactions(),
-    getDisputes(),
-  ]);
-  const transactions = transactionsData.map((transaction: any) => ({
-    id: transaction.id,
-    title: transaction.orderId,
-    subtitle: `${new Date(transaction.createdAt).toLocaleDateString("es-AR")} • ${transaction.status}`,
-    amount: `$${transaction.amount}`,
-  }));
-  const disputes = disputesData.map((dispute: any) => ({
-    id: dispute.id,
-    title: `Transaccion ${dispute.transaction?.orderId || "Orden sin identificar"}`,
-    subtitle: `${dispute.reason} • ${dispute.status}`,
-    amount: `$${dispute.transaction?.amount || 0}`,
-  }));
+  if (loading) {
+    return <LoadingSpinner message="Cargando panel de compras..." />;
+  }
+
+  if (error) {
+    return (
+      <ErrorCard
+        title="Error al cargar datos"
+        message={error}
+        onRetry={() => window.location.reload()}
+      />
+    );
+  }
 
   return (
     <main className="min-h-screen bg-zinc-100 p-8">
