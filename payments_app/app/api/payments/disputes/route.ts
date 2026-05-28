@@ -26,13 +26,11 @@ export async function GET() {
       );
     }
 
-    // ADMIN ve todas
     if (user.roles.includes("ADMIN")) {
       const disputes = await prisma.dispute.findMany({
         include: {
           transaction: true,
         },
-
         orderBy: {
           createdAt: "desc",
         },
