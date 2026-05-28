@@ -1,3 +1,5 @@
+"use client";
+
 type PaymentDetailsProps = {
   date: string;
   paymentMethod: string;

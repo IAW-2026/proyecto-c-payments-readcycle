@@ -1,42 +1,63 @@
+"use client";
+
 import TransactionsList from "../../../components/ui/OperationList";
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
-import { headers } from "next/headers";
+import ErrorCard from "@/components/ui/ErrorCard";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
-async function getTransactions() {
-  const headersList = await headers();
+export default function TransactionsPage() {
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const res = await fetch(
-    "http://localhost:3001/api/payments/transactions",
-    {
-      cache: "no-store",
-
-      headers: {
-        cookie: headersList.get("cookie") || "",
-      },
+  useEffect(() => {
+    async function fetchTransactions() {
+      try {
+        setLoading(true);
+        setError(null);
+        const res = await fetch("/api/payments/transactions");
+        if (!res.ok) {
+          throw new Error("Failed to fetch transactions");
+        }
+        const transactionsData = await res.json();
+        const formattedTransactions = transactionsData.map((transaction: any) => ({
+          id: transaction.id,
+          title: transaction.orderId,
+          subtitle: `${new Date(transaction.createdAt).toLocaleDateString("es-AR")} • ${transaction.status}`,
+          amount: `$${transaction.amount}`,
+        }));
+        setTransactions(formattedTransactions);
+      } catch (err) {
+        console.error(err);
+        setError(err instanceof Error ? err.message : "Error desconocido");
+      } finally {
+        setLoading(false);
+      }
     }
-  );
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch transactions");
+    fetchTransactions();
+  }, []);
+
+  if (loading) {
+    return <LoadingSpinner message="Cargando historial de transacciones..." />;
   }
-  return res.json();
-}
 
-export default async function TransactionsPage() {
-  const transactionsData = await getTransactions();
-  const transactions = transactionsData.map((transaction: any) => ({
-    id: transaction.id,
-    title: transaction.orderId,
-    subtitle: `${new Date(transaction.createdAt).toLocaleDateString("es-AR")} • ${transaction.status}`,
-    amount: `$${transaction.amount}`,
-  }));
+  if (error) {
+    return (
+      <ErrorCard
+        title="Error al cargar transacciones"
+        message={error}
+        onRetry={() => window.location.reload()}
+      />
+    );
+  }
 
   return (
     <main className="min-h-screen bg-zinc-100 p-8">
-
-      <div className="mb-8 flex item-start justify-between">
+      <div className="mb-8 flex items-start justify-between">
         <div>
           <h1 className="text-5xl font-bold text-zinc-800">
             Historial de transacciones
@@ -48,15 +69,15 @@ export default async function TransactionsPage() {
         </div>
 
         <Link
-            href="/dashboard">
-            <Image
-              src="/LogoSinTexto.png"
-              alt="RC logo"
-              width={70}
-              height={20}
-              priority
-            />
-          </Link>
+          href="/dashboard">
+          <Image
+            src="/LogoSinTexto.png"
+            alt="RC logo"
+            width={70}
+            height={20}
+            priority
+          />
+        </Link>
       </div>
 
       <TransactionsList
