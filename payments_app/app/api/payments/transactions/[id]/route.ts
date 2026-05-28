@@ -31,7 +31,6 @@ export async function GET(
       );
     }
 
-    // ADMIN puede ver cualquier transacción
     if (user.roles.includes("ADMIN")) {
       const transaction = await prisma.transaction.findUnique({
         where: {
@@ -83,11 +82,9 @@ export async function GET(
         { status: 404 }
       );
     }
-
     return NextResponse.json(transaction);
   } catch (error) {
     console.error(error);
-
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

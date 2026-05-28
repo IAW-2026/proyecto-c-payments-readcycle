@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
     if (!user) {
       return NextResponse.json(
-        { error: "Usuario no encontrado" },
+        { error: "User not found" },
         { status: 404 }
       );
     }
@@ -32,15 +32,14 @@ export async function POST(req: Request) {
 
     if (!transactionId || !reason) {
       return NextResponse.json(
-        { error: "Campos faltantes" },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    // ADMIN no crea disputas
     if (user.roles.includes("ADMIN")) {
       return NextResponse.json(
-        { error: "Admins no pueden crear disputas" },
+        { error: "Admins cannot create disputes" },
         { status: 403 }
       );
     }
@@ -61,7 +60,7 @@ export async function POST(req: Request) {
 
     if (filters.length === 0) {
       return NextResponse.json(
-        { error: "Usuario sin permisos válidos" },
+        { error: "User has no valid roles" },
         { status: 403 }
       );
     }
@@ -78,22 +77,21 @@ export async function POST(req: Request) {
 
     if (!transaction) {
       return NextResponse.json(
-        { error: "Transacción no encontrada" },
+        { error: "Transaction not found" },
         { status: 404 }
       );
     }
 
-    // Ya existe disputa
     if (transaction.dispute) {
       return NextResponse.json(
-        { error: "Ya existe una disputa para esta transacción" },
+        { error: "A dispute already exists for this transaction" },
         { status: 400 }
       );
     }
 
     const dispute = await prisma.dispute.create({
       data: {
-        userId: user.id, // quien creó la disputa
+        userId: user.id,
         transactionId: transaction.id,
         reason,
 

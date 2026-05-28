@@ -31,13 +31,11 @@ export async function GET(
 
     const { id } = await params;
 
-    // ADMIN puede ver cualquier disputa
     if (user.roles.includes("ADMIN")) {
       const dispute = await prisma.dispute.findUnique({
         where: {
           id,
         },
-
         include: {
           transaction: {
             select: {

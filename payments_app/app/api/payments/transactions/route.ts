@@ -66,11 +66,9 @@ export async function GET() {
         createdAt: "desc",
       },
     });
-
     return NextResponse.json(transactions);
   } catch (error) {
     console.error(error);
-
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

@@ -13,7 +13,6 @@ export default async function DashboardLayout({
   if (!userId) {
     redirect("/")
   }
-
   const clerkUser = await currentUser()
 
   if (!clerkUser) {
@@ -33,7 +32,6 @@ export default async function DashboardLayout({
         ?.roles as string[]) || []
 
     let userRole: UserRole = UserRole.BUYER
-
     if (
       currentRoles.includes("ADMIN")
     ) {
@@ -48,13 +46,11 @@ export default async function DashboardLayout({
       userRole = UserRole.BUYER
     } else {
       const client = await clerkClient()
-
       await client.users.updateUser(
         userId,
         {
           publicMetadata: {
             ...clerkUser.publicMetadata,
-
             roles: ["BUYER"],
           },
         }
