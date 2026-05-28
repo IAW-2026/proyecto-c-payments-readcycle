@@ -12,17 +12,21 @@ export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     async function fetchTransactions() {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch("/api/payments/transactions");
+        const res = await fetch(`/api/payments/transactions?page=${currentPage}&limit=5`);
         if (!res.ok) {
           throw new Error("Failed to fetch transactions");
         }
-        const transactionsData = await res.json();
+        const responseData = await res.json();
+
+        const transactionsData = responseData.data || [];
         const formattedTransactions = transactionsData.map((transaction: any) => ({
           id: transaction.id,
           title: transaction.orderId,
@@ -30,6 +34,7 @@ export default function TransactionsPage() {
           amount: `$${transaction.amount}`,
         }));
         setTransactions(formattedTransactions);
+        setTotalPages(responseData.totalPages || 1);
       } catch (err) {
         console.error(err);
         setError(err instanceof Error ? err.message : "Error desconocido");
@@ -39,7 +44,7 @@ export default function TransactionsPage() {
     }
 
     fetchTransactions();
-  }, []);
+  }, [currentPage]);
 
   if (loading) {
     return <LoadingSpinner message="Cargando historial de transacciones..." />;
@@ -84,6 +89,9 @@ export default function TransactionsPage() {
         title="Transacciones"
         items={transactions}
         link="/dashboard/transactions"
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={(page) => setCurrentPage(page)}
       />
 
     </main>
