@@ -2,6 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 
 interface Dispute {
   id: string;
@@ -26,6 +27,17 @@ export default function DisputePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
+
+  const [newStatus, setNewStatus] = useState<string>("");
+  const [newResolution, setNewResolution] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  const isAdmin = clerkLoaded && Array.isArray(clerkUser?.publicMetadata?.roles)
+    ? (clerkUser.publicMetadata.roles as string[]).includes("ADMIN")
+    : false;
+
   useEffect(() => {
     if (!id) return;
 
@@ -39,6 +51,9 @@ export default function DisputePage() {
         }
         const data = await res.json();
         setDispute(data);
+
+        setNewStatus(data.status);
+        setNewResolution(data.resolution || "");
       } catch (err) {
         console.error(err);
         const errorMessage = err instanceof Error ? err.message : "Failed to fetch dispute";
@@ -50,6 +65,42 @@ export default function DisputePage() {
 
     fetchDispute();
   }, [id]);
+
+  const handleSave = async () => {
+    if (!id) return;
+
+    try {
+      setIsSaving(true);
+      setSaveSuccess(false);
+
+      const res = await fetch(`/api/payments/disputes/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          status: newStatus,
+          resolution: newResolution || null,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to update dispute");
+      }
+
+      const updatedDispute = await res.json();
+      setDispute(updatedDispute);
+      setSaveSuccess(true);
+
+      // Timer para la notificacion???
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      console.error(err);
+      alert("Error al guardar los cambios");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (loading) {
     return <LoadingSpinner message="Cargando detalles de la disputa..." />;
@@ -140,6 +191,66 @@ export default function DisputePage() {
               {dispute.resolution || "Pendiente de resolución"}
             </span>
           </div>
+
+          {isAdmin && (
+            <div className="mt-8 border-t border-zinc-200 pt-8 space-y-6">
+              <h3 className="text-lg font-bold text-zinc-800">
+                ⚙️ Panel de Control del Admin
+              </h3>
+
+              <div className="space-y-4 rounded-xl bg-zinc-50 p-6 border border-zinc-200">
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-zinc-600">
+                    Cambiar Estado
+                  </label>
+                  <select
+                    disabled={isSaving}
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                    className="w-full rounded-lg border border-zinc-300 bg-white p-2.5 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-800"
+                  >
+                    <option value="OPEN">Abierta (OPEN)</option>
+                    <option value="REVIEWING">En Revisión (REVIEWING)</option>
+                    <option value="RESOLVED">Resuelta (RESOLVED)</option>
+                    <option value="REJECTED">Rechazada (REJECTED)</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-semibold text-zinc-600">
+                    Texto de Resolución
+                  </label>
+                  <textarea
+                    disabled={isSaving}
+                    value={newResolution}
+                    onChange={(e) => setNewResolution(e.target.value)}
+                    placeholder="Escribe aquí los motivos o detalles de la resolución..."
+                    rows={4}
+                    className="w-full rounded-lg border border-zinc-300 bg-white p-2.5 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-800"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  {saveSuccess ? (
+                    <span className="text-sm font-semibold text-green-600">
+                      ✓ Cambios guardados correctamente
+                    </span>
+                  ) : (
+                    <span />
+                  )}
+
+                  <button
+                    disabled={isSaving}
+                    onClick={handleSave}
+                    className="rounded-lg bg-zinc-800 px-5 py-2 text-sm font-semibold text-white shadow-md hover:bg-zinc-700 disabled:opacity-50 transition-colors cursor-pointer select-none"
+                  >
+                    {isSaving ? "Guardando..." : "Guardar"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </main>
