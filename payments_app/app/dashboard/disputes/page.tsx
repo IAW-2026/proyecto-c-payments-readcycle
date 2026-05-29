@@ -22,18 +22,22 @@ export default function DisputesPage() {
   const [disputes, setDisputes] = useState<Dispute[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     async function fetchDisputes() {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch("/api/payments/disputes");
+        const res = await fetch(`/api/payments/disputes?page=${currentPage}&limit=5`);
         if (!res.ok) {
           throw new Error("Failed to fetch disputes");
         }
-        const data = await res.json();
-        setDisputes(data);
+        const responseData = await res.json();
+
+        setDisputes(responseData.data || []);
+        setTotalPages(responseData.totalPages || 1);
       } catch (err) {
         console.error(err);
         const errorMessage = err instanceof Error ? err.message : "Failed to fetch disputes";
@@ -44,7 +48,7 @@ export default function DisputesPage() {
     }
 
     fetchDisputes();
-  }, []);
+  }, [currentPage]);
 
   if (loading) {
     return <LoadingSpinner message="Cargando historial de disputas..." />;
@@ -96,6 +100,9 @@ export default function DisputesPage() {
         title="Disputas"
         items={mappedDisputes}
         link="/dashboard/disputes"
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={(page) => setCurrentPage(page)}
       />
     </main>
   );

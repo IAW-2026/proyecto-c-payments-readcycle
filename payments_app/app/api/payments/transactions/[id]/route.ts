@@ -91,3 +91,48 @@ export async function GET(
     );
   }
 }
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { userId: clerkUserId } = await auth();
+
+    if (!clerkUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { clerkUserId },
+    });
+
+    if (!user || !user.roles.includes("ADMIN")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const { id } = await params;
+    const body = await req.json();
+    const { status } = body;
+
+    const validStatuses = ["PENDING", "APPROVED", "REJECTED", "REFUNDED", "CANCELLED"];
+    if (status && !validStatuses.includes(status)) {
+      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    }
+
+    const updatedTransaction = await prisma.transaction.update({
+      where: { id },
+      data: {
+        ...(status && { status }),
+      },
+    });
+
+    return NextResponse.json(updatedTransaction);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import prisma from "@/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const { userId: clerkUserId } = await auth();
 
@@ -26,20 +26,11 @@ export async function GET() {
       );
     }
 
-    if (user.roles.includes("ADMIN")) {
-      const disputes = await prisma.dispute.findMany({
-        include: {
-          transaction: true,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
+    const { searchParams } = new URL(request.url);
+    const pageParam = searchParams.get("page");
+    const limitParam = searchParams.get("limit") || "5";
 
-      return NextResponse.json(disputes);
-    }
-
-    const filters = [];
+    const filters: any[] = [];
 
     if (user.roles.includes("BUYER")) {
       filters.push({
@@ -57,17 +48,54 @@ export async function GET() {
       });
     }
 
-    if (filters.length === 0) {
-      return NextResponse.json(
-        { error: "User has no valid roles" },
-        { status: 403 }
-      );
+    // Build the where filter condition
+    let whereCondition: any = undefined;
+    if (!user.roles.includes("ADMIN")) {
+      if (filters.length === 0) {
+        return NextResponse.json(
+          { error: "User has no valid roles" },
+          { status: 403 }
+        );
+      }
+      whereCondition = {
+        OR: filters,
+      };
     }
 
+    // If page parameter is supplied, return paginated results
+    if (pageParam) {
+      const page = parseInt(pageParam) || 1;
+      const limit = parseInt(limitParam) || 5;
+      const skip = (page - 1) * limit;
+
+      const total = await prisma.dispute.count({
+        where: whereCondition,
+      });
+
+      const disputes = await prisma.dispute.findMany({
+        where: whereCondition,
+        include: {
+          transaction: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip,
+        take: limit,
+      });
+
+      return NextResponse.json({
+        data: disputes,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      });
+    }
+
+    // Default: return all disputes (backward compatible)
     const disputes = await prisma.dispute.findMany({
-      where: {
-        OR: filters,
-      },
+      where: whereCondition,
       include: {
         transaction: true,
       },

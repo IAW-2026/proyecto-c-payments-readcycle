@@ -20,16 +20,19 @@ export default function DashboardPage() {
         setLoading(true);
         setError(null);
         const [transactionsRes, disputesRes] = await Promise.all([
-          fetch("/api/payments/transactions"),
-          fetch("/api/payments/disputes"),
+          fetch("/api/payments/transactions?page=1&limit=5"),
+          fetch("/api/payments/disputes?page=1&limit=5"),
         ]);
 
         if (!transactionsRes.ok || !disputesRes.ok) {
           throw new Error("Error al obtener los datos de la base de datos");
         }
 
-        const transactionsData = await transactionsRes.json();
-        const disputesData = await disputesRes.json();
+        const transactionsJson = await transactionsRes.json();
+        const disputesJson = await disputesRes.json();
+
+        const transactionsData = transactionsJson.data || [];
+        const disputesData = disputesJson.data || [];
 
         const formattedTransactions = transactionsData.map((transaction: any) => ({
           id: transaction.id,

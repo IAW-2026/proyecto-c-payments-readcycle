@@ -113,3 +113,53 @@ export async function GET(
     );
   }
 }
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { userId: clerkUserId } = await auth();
+
+    if (!clerkUserId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { clerkUserId },
+    });
+
+    if (!user || !user.roles.includes("ADMIN")) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const { id } = await params;
+    const body = await req.json();
+    const { status, resolution } = body;
+
+    const updatedDispute = await prisma.dispute.update({
+      where: { id },
+      data: {
+        ...(status && { status }),
+        resolution,
+      },
+      include: {
+        transaction: {
+          select: {
+            orderId: true,
+            amount: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json(updatedDispute);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
