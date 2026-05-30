@@ -27,21 +27,21 @@ export default function TransactionsList({
   onPageChange,
 }: TransactionsListProps) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
-      <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4">
-        <h2 className="text-lg font-semibold text-zinc-800">
+    <div className="overflow-hidden rounded-2xl border border-brand-sand/40 bg-white shadow-sm transition-all hover:shadow-md duration-300">
+      <div className="flex items-center justify-between border-b border-brand-sand/30 bg-brand-beige/10 px-6 py-4">
+        <h2 className="text-lg font-bold text-brand-forest">
           {title}
         </h2>
         <div className="flex items-center gap-3">
           {currentPage && totalPages && onPageChange ? (
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-zinc-500 mr-2">
+              <span className="text-sm font-semibold text-zinc-500 mr-2">
                 {currentPage} / {totalPages}
               </span>
               <button
                 onClick={() => onPageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 transition-colors hover:bg-zinc-100 disabled:opacity-40 disabled:hover:bg-white"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-brand-sand/40 bg-white text-zinc-600 transition-colors hover:bg-brand-beige/50 disabled:opacity-40 disabled:hover:bg-white cursor-pointer"
                 aria-label="Página anterior"
               >
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -51,7 +51,7 @@ export default function TransactionsList({
               <button
                 onClick={() => onPageChange(currentPage + 1)}
                 disabled={currentPage === totalPages || totalPages === 0}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 transition-colors hover:bg-zinc-100 disabled:opacity-40 disabled:hover:bg-white"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-brand-sand/40 bg-white text-zinc-600 transition-colors hover:bg-brand-beige/50 disabled:opacity-40 disabled:hover:bg-white cursor-pointer"
                 aria-label="Página siguiente"
               >
                 <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -63,7 +63,7 @@ export default function TransactionsList({
         </div>
       </div>
 
-      <div className="flex flex-col">
+      <div className="flex flex-col divide-y divide-brand-sand/10">
         {items.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-zinc-400">
             <span className="text-4xl mb-2">📁</span>
@@ -74,28 +74,30 @@ export default function TransactionsList({
             <Link
               href={`${link}/${item.id}`}
               key={item.id}
-              className={`flex items-center justify-between border-b border-zinc-100 px-6 py-5 transition-colors hover:bg-zinc-50 ${index === 0 ? "border-l-4 border-l-green-500 bg-green-50/40" : ""
-                }`}
+              className={`flex items-center justify-between px-6 py-4.5 transition-colors hover:bg-brand-beige/30 ${
+                index === 0 ? "border-l-4 border-l-brand-sage bg-brand-sage/5" : ""
+              }`}
             >
               <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-zinc-100 text-xl">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-sand/30 text-brand-forest text-base select-none">
                   💳
                 </div>
                 <div>
-                  <h3 className="font-semibold text-zinc-800">
+                  <h3 className="font-bold text-brand-forest">
                     {item.title}
                   </h3>
-                  <p className="text-sm text-zinc-500">
+                  <p className="text-xs sm:text-sm text-zinc-500">
                     {item.subtitle}
                   </p>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-2">
+              <div className="flex flex-col items-end gap-2 shrink-0">
                 <span
-                  className={`text-lg font-bold ${item.amount.startsWith("+")
-                      ? "text-green-600"
-                      : "text-zinc-700"
-                    }`}
+                  className={`text-base sm:text-lg font-extrabold ${
+                    item.amount.startsWith("+")
+                      ? "text-brand-sage"
+                      : "text-brand-forest"
+                  }`}
                 >
                   {item.amount}
                 </span>
