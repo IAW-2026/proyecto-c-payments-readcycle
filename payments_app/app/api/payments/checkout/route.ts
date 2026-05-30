@@ -5,10 +5,10 @@ const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN!
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const { items, buyerId, sellerId, orderId, returnUrl } = data;
+    const { items, buyerId, sellerId, orderId, returnUrl, baseUrl } = data;
 
-    if (!items || !buyerId || !sellerId || !returnUrl) {
-      return new Response(JSON.stringify({ error: 'Faltan datos requeridos (items, buyerId, sellerId, returnUrl)' }), {
+    if (!items || !buyerId || !sellerId || !returnUrl || !baseUrl) {
+      return new Response(JSON.stringify({ error: 'Faltan datos requeridos (items, buyerId, sellerId, returnUrl, baseUrl)' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -16,10 +16,7 @@ export async function POST(request: Request) {
 
     const preference = new Preference(client);
 
-    // Hardcodeado temporalmente para que funcione con el túnel
-    const baseUrl = "https://fxsqcp5x-3001.brs.devtunnels.ms";
-
-    // Construir la URL de notificación del webhook de forma dinámica
+    // Construir la URL de notificación del webhook de forma dinámica usando el baseUrl recibido
     const webhookSecret = process.env.MP_WEBHOOK_SECRET || process.env.WEBHOOK_SECRET;
     const secretQuery = webhookSecret ? `?secret=${webhookSecret}` : "";
     const notificationUrl = `${baseUrl}/api/payments/checkout/mpHook${secretQuery}`;

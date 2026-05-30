@@ -26,7 +26,6 @@ function mapMpStatus(status: string): TransactionStatus {
 
 export async function POST(req: NextRequest) {
   try {
-    // Verificar token secreto para validar que la petición proviene de tu configuración de webhook de Mercado Pago
     const { searchParams } = req.nextUrl;
     const clientSecret = searchParams.get('secret');
     const webhookSecret = process.env.MP_WEBHOOK_SECRET || process.env.WEBHOOK_SECRET;
@@ -78,7 +77,6 @@ export async function POST(req: NextRequest) {
 
     const transactionStatus = mapMpStatus(payment.status!);
 
-    // Realizar upsert en la base de datos con los campos correctos del modelo Transaction
     await prisma.transaction.upsert({
       where: {
         mercadoPagoPaymentId: payment.id!.toString(),

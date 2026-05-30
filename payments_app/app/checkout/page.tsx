@@ -15,7 +15,6 @@ const cartItems = [
 const MOCK_CHECKOUT_DATA = {
   buyerId: "cmpoj8m160001xcto3sxcs6n2", // Valentino Villar (comprador)
   sellerId: "cmpon3asn0003xctoflgxiy95", // Alejo Quintana (vendedor)
-  returnUrl: "https://fxsqcp5x-3001.brs.devtunnels.ms/dashboard/transactions", // Link único de retorno mock
 };
 
 export default function CheckoutPage() {
@@ -35,6 +34,10 @@ export default function CheckoutPage() {
     try {
       setLoading(true);
       const orderId = `ORDER-${Date.now()}`; //esto tambien es mock
+      
+      // Obtener dinámicamente la URL base actual desde la ventana del navegador del usuario
+      const currentOrigin = window.location.origin;
+      const dynamicReturnUrl = `${currentOrigin}/dashboard/transactions`;
 
       const res = await fetch(
         '/api/payments/checkout',
@@ -48,7 +51,8 @@ export default function CheckoutPage() {
             buyerId: MOCK_CHECKOUT_DATA.buyerId,
             sellerId: MOCK_CHECKOUT_DATA.sellerId,
             orderId: orderId,
-            returnUrl: MOCK_CHECKOUT_DATA.returnUrl,
+            returnUrl: dynamicReturnUrl,
+            baseUrl: currentOrigin,
             items: cartItems.map((item) => ({
               id: item.id,
               title: item.title,
