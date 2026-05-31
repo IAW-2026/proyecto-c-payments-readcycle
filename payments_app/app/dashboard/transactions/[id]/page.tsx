@@ -112,8 +112,12 @@ export default function PaymentPage() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-100 p-8">
-      <div className="mx-auto max-w-2xl space-y-6">
+    <main className="min-h-[calc(100vh-4rem)] bg-brand-beige flex flex-col justify-start p-6 sm:p-8 relative overflow-hidden font-sans">
+      {/* Glows de fondo difusos para profundidad */}
+      <div className="absolute top-[-10%] right-[-10%] w-[350px] sm:w-[450px] h-[350px] sm:h-[450px] rounded-full bg-brand-sage/5 blur-[100px] sm:blur-[120px] pointer-events-none select-none z-0" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[350px] sm:w-[450px] h-[350px] sm:h-[450px] rounded-full bg-brand-clay/5 blur-[100px] sm:blur-[120px] pointer-events-none select-none z-0" />
+
+      <div className="mx-auto w-full max-w-2xl space-y-6 z-10">
         <PaymentDetails
           date={new Date(transaction.createdAt).toLocaleDateString("es-AR")}
           paymentMethod={transaction.paymentMethod || "No especificado"}
@@ -125,22 +129,22 @@ export default function PaymentPage() {
         />
 
         {isAdmin && (
-          <div className="w-full rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm space-y-6">
-            <h3 className="text-lg font-bold text-zinc-800">
+          <div className="w-full rounded-2xl border border-brand-sand/40 bg-white p-8 shadow-sm space-y-6 transition-all hover:shadow-md duration-300">
+            <h3 className="text-lg font-bold text-brand-forest flex items-center gap-2">
               ⚙️ Panel de Control del Admin
             </h3>
 
-            <div className="space-y-4 rounded-xl bg-zinc-50 p-6 border border-zinc-200">
+            <div className="space-y-4 rounded-xl bg-brand-beige/30 p-6 border border-brand-sand/30">
 
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-zinc-600">
+                <label className="text-sm font-semibold text-zinc-500">
                   Cambiar Estado de la Transacción
                 </label>
                 <select
                   disabled={isSaving}
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value)}
-                  className="w-full rounded-lg border border-zinc-300 bg-white p-2.5 text-sm text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-800"
+                  className="w-full rounded-lg border border-brand-sand/40 bg-white p-2.5 text-sm text-brand-forest font-semibold focus:outline-none focus:ring-2 focus:ring-brand-sage/40"
                 >
                   <option value="PENDING">Pendiente (PENDING)</option>
                   <option value="APPROVED">Aprobada (APPROVED)</option>
@@ -152,7 +156,7 @@ export default function PaymentPage() {
 
               <div className="flex items-center justify-between pt-2">
                 {saveSuccess ? (
-                  <span className="text-sm font-semibold text-green-600">
+                  <span className="text-sm font-bold text-brand-sage">
                     ✓ Cambios guardados correctamente
                   </span>
                 ) : (
@@ -162,7 +166,7 @@ export default function PaymentPage() {
                 <button
                   disabled={isSaving}
                   onClick={handleSave}
-                  className="rounded-lg bg-zinc-800 px-5 py-2 text-sm font-semibold text-white shadow-md hover:bg-zinc-700 disabled:opacity-50 transition-colors cursor-pointer select-none"
+                  className="rounded-lg bg-brand-forest text-brand-beige hover:bg-brand-sage px-5 py-2 text-sm font-bold shadow-md disabled:opacity-50 transition-colors cursor-pointer select-none"
                 >
                   {isSaving ? "Guardando..." : "Guardar"}
                 </button>
