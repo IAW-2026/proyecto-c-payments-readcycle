@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/dist/client/components/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function CreateDisputePage() {
   const router = useRouter();
@@ -9,6 +9,29 @@ export default function CreateDisputePage() {
   const [reason, setReason] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactionsLoading, setTransactionsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadTransactions() {
+      try {
+        const res = await fetch("/api/payments/transactions");
+        if (res.ok) {
+          const data = await res.json();
+          const list = Array.isArray(data) ? data : (data.data || []);
+          setTransactions(list);
+          if (list.length > 0) {
+            setTransactionId(list[0].id);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading transactions:", err);
+      } finally {
+        setTransactionsLoading(false);
+      }
+    }
+    loadTransactions();
+  }, []);
 
   async function handleSubmit(
     e: React.SubmitEvent<HTMLFormElement>
@@ -89,16 +112,31 @@ export default function CreateDisputePage() {
                 Transacción
               </label>
 
-              <input
-                type="text"
-                placeholder="Ingrese el ID de la transacción"
-                value={transactionId}
-                onChange={(e) =>
-                  setTransactionId(e.target.value)
-                }
-                required
-                className="w-full rounded-xl border border-brand-sand/40 bg-white px-4 py-3 text-sm text-brand-forest font-semibold outline-none transition-all focus:border-brand-sage focus:ring-2 focus:ring-brand-sage/20"
-              />
+              {transactionsLoading ? (
+                <div className="w-full rounded-xl border border-brand-sand/40 bg-zinc-50 px-4 py-3 text-sm text-zinc-500 animate-pulse">
+                  Cargando transacciones...
+                </div>
+              ) : transactions.length === 0 ? (
+                <div className="w-full rounded-xl border border-brand-sand/40 bg-zinc-50 px-4 py-3 text-sm text-zinc-500 font-semibold">
+                  No se encontraron transacciones en tu cuenta.
+                </div>
+              ) : (
+                <select
+                  value={transactionId}
+                  onChange={(e) => setTransactionId(e.target.value)}
+                  required
+                  className="w-full rounded-xl border border-brand-sand/40 bg-white px-4 py-3 text-sm text-brand-forest font-semibold outline-none transition-all focus:border-brand-sage focus:ring-2 focus:ring-brand-sage/20"
+                >
+                  <option value="" disabled>
+                    Seleccione una transacción
+                  </option>
+                  {transactions.map((tx: any) => (
+                    <option key={tx.id} value={tx.id}>
+                      Orden {tx.orderId} - ${tx.amount} ({tx.status})
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <div>
@@ -134,8 +172,8 @@ export default function CreateDisputePage() {
             <div>
               <button
                 type="submit"
-                disabled={loading}
-                className="rounded-xl bg-brand-clay text-brand-beige px-8 py-3.5 text-sm font-bold shadow-md transition-all duration-300 hover:bg-brand-clay/90 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 cursor-pointer disabled:opacity-50 select-none"
+                disabled={loading || transactions.length === 0 || !transactionId}
+                className="rounded-xl bg-brand-clay text-brand-beige px-8 py-3.5 text-sm font-bold shadow-md transition-all duration-300 hover:bg-brand-clay/90 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none"
               >
                 {loading
                   ? "Enviando..."
