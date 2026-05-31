@@ -76,17 +76,21 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-100 p-8">
-      <div className="mb-8 flex items-start justify-between">
+    <main className="min-h-[calc(100vh-4rem)] bg-brand-beige flex flex-col justify-between p-6 sm:p-8 relative overflow-hidden font-sans">
+      {/* Glows de fondo difusos para profundidad */}
+      <div className="absolute top-[-10%] right-[-10%] w-[350px] sm:w-[450px] h-[350px] sm:h-[450px] rounded-full bg-brand-sage/5 blur-[100px] sm:blur-[120px] pointer-events-none select-none z-0" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[350px] sm:w-[450px] h-[350px] sm:h-[450px] rounded-full bg-brand-clay/5 blur-[100px] sm:blur-[120px] pointer-events-none select-none z-0" />
+
+      <div className="mb-6 flex items-start justify-between z-10 w-full max-w-7xl mx-auto">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-800">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-forest tracking-tight">
             Datos de compras
           </h1>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-xs sm:text-sm text-zinc-500">
             Historiales actualizados de tus transacciones y disputas
           </p>
         </div>
-        <Link href="/dashboard">
+        <Link href="/dashboard" className="z-10">
           <Image
             src="/LogoSinTexto.png"
             alt="RC logo"
@@ -97,7 +101,7 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 z-10 w-full max-w-7xl mx-auto flex-1 items-stretch">
         <DashboardList
           title="Transacciones"
           items={transactions}
@@ -110,16 +114,16 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="mt-10 flex justify-center gap-20">
+      <div className="mt-8 flex justify-center gap-12 sm:gap-20 z-10 w-full max-w-7xl mx-auto">
         <Link
           href="/checkout"
-          className="rounded-xl bg-green-500 px-8 py-4 font-semibold text-white shadow-md transition-colors hover:bg-green-600"
+          className="rounded-xl bg-brand-sage text-brand-beige px-8 py-4 font-bold shadow-md transition-all duration-300 hover:bg-brand-forest hover:-translate-y-0.5 active:translate-y-0 active:scale-95 cursor-pointer text-sm"
         >
           Simular Pago
         </Link>
         <Link
           href="/dashboard/disputes/new"
-          className="rounded-xl bg-green-500 px-8 py-4 font-semibold text-white shadow-md transition-colors hover:bg-green-600"
+          className="rounded-xl bg-brand-clay text-brand-beige px-8 py-4 font-bold shadow-md transition-all duration-300 hover:bg-brand-clay/90 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 cursor-pointer text-sm"
         >
           Crear disputa
         </Link>

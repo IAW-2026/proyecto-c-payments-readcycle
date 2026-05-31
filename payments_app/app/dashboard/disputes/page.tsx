@@ -72,20 +72,22 @@ export default function DisputesPage() {
   }));
 
   return (
-    <main className="min-h-screen bg-zinc-100 p-8">
-      <div className="mb-8 flex items-start justify-between">
+    <main className="min-h-[calc(100vh-4rem)] bg-brand-beige flex flex-col justify-start p-6 sm:p-8 relative overflow-hidden font-sans">
+      {/* Glows de fondo difusos para profundidad */}
+      <div className="absolute top-[-10%] right-[-10%] w-[350px] sm:w-[450px] h-[350px] sm:h-[450px] rounded-full bg-brand-sage/5 blur-[100px] sm:blur-[120px] pointer-events-none select-none z-0" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[350px] sm:w-[450px] h-[350px] sm:h-[450px] rounded-full bg-brand-clay/5 blur-[100px] sm:blur-[120px] pointer-events-none select-none z-0" />
+
+      <div className="mb-6 flex items-start justify-between z-10 w-full max-w-7xl mx-auto">
         <div>
-          <h1 className="text-5xl font-bold text-zinc-800">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-forest tracking-tight">
             Historial de disputas
           </h1>
-
-          <p className="mt-2 text-zinc-500">
+          <p className="mt-1 text-xs sm:text-sm text-zinc-500">
             Historial detallado de las disputas accionadas por tu cuenta.
           </p>
         </div>
 
-        <Link
-          href="/dashboard">
+        <Link href="/dashboard" className="z-10 shrink-0">
           <Image
             src="/LogoSinTexto.png"
             alt="RC logo"
@@ -96,14 +98,16 @@ export default function DisputesPage() {
         </Link>
       </div>
 
-      <DisputesList
-        title="Disputas"
-        items={mappedDisputes}
-        link="/dashboard/disputes"
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={(page) => setCurrentPage(page)}
-      />
+      <div className="z-10 w-full max-w-7xl mx-auto">
+        <DisputesList
+          title="Disputas"
+          items={mappedDisputes}
+          link="/dashboard/disputes"
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => setCurrentPage(page)}
+        />
+      </div>
     </main>
   );
 }
