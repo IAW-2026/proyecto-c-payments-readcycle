@@ -7,12 +7,6 @@ Esta app corresponde al módulo de pagos en los proyectos de tipo **A (Transport
 
 ---
 
-## Descripción
-
-La aplicacion de pagos ReadCycle presenta un HUB donde se pueden revisar todas las operaciones que ofrece la plataforma.
-Nuestros usuarios pueden revisar las transacciones y disputas dentro de el HUB o acceder a verlas en detalle o en su totalidad. Tambien pueden generar disputas sobre transacciones creadas o generar nuevas transacciones.
-Los administradores del sitio no tienen un panel como tal ya que la aplicacion en si es un panel, por esto, la aplicacion para el admin se mantiene igual pero con agregados para las operaciones que le corresponden
-
 ## Deploy
 
 La aplicación está disponible en: [Vercel](https://proyecto-c-payments-readcycle-nlqt.vercel.app/)
@@ -23,32 +17,26 @@ La aplicación está disponible en: [Vercel](https://proyecto-c-payments-readcyc
 
 ### Usuario comprador
 
-- Email: fede@readcycle.com
-- Contraseña: readcycle
-
-- Email: tino@readcycle.com
-- Contraseña: readcycle
+- Email: buyer+clerktest@iaw.com
+- Contraseña: iawuser#
 
 ### Usuario vendedor
 
-- Email: aleq@readcycle.com
-- Contraseña: readcycle
-
-- Email: aleg@readcycle.com
-- Contraseña: readcycle
+- Email: seller+clerktest@iaw.com
+- Contraseña: iawuser#
 
 ### Administrador
 
-- Email: admin@admin.com
-- Contraseña: adminreadcycle
+- Email: admin+clerktest@iaw.com
+- Contraseña: iawuser#
 
-### Usuario comprador (MP)
+### Usuario comprador (MercadoPago)
 
 - User: TESTUSER8668260087551210480
 - Contraseña: P2IqX1nn9q
 - Codigo: 514692
 
-### Usuario vendedor (MP)
+### Usuario vendedor (MercadoPago)
 
 - User: TESTUSER7413073599988108579
 - Contraseña: Dar5CWpvHU
@@ -59,9 +47,18 @@ La aplicación está disponible en: [Vercel](https://proyecto-c-payments-readcyc
 ## Instrucciones extra
 
 - La aplicacion simula una compra entre 2 usuarios reales por 26.000 pesos y envia a la persona a mercado pago. Esta simulacion se da ya que necesitariamos la aplicacion Buyer para que nos de datos, pero para probar que funciona la compra existe esta simulacion.
-- La aplicacion funciona a la perfeccion en local exepto por la parte de mercado pago. Esto es porque mercado pago necesita links reales a los que acceder para las operaciones. En el caso de probar mercado pago se recomienda hacerlo en el deploy, o caso contrario, utilizar DevTunnels de VsCode para hacer port forwarding del entorno local para que mercado pago pueda llegar a el.
-- Al intentar una compra en mercado pago, utilizar el usuario comprador dado previamente. Tenga en cuenta que esa cuenta de prueba tiene cerca de 200.000 pesos que bajan por cada operacion que se hace. Tambien tenga en cuenta que si desea utilizar las tarjetas, estas tienen clave 123 o 1234 para AMEX. Las tarjetas de prueba no generan operaciones en la base de datos.
+- La aplicacion funciona a la perfeccion EN LOCAL exepto por la parte de mercado pago. Esto es porque mercado pago necesita links reales a los que acceder para las operaciones. En el caso de probar mercado pago se recomienda hacerlo en el deploy, o caso contrario, utilizar DevTunnels de VsCode para hacer port forwarding del entorno local para que mercado pago pueda llegar a el.
+- Al intentar una compra en mercado pago, utilizar el usuario comprador dado previamente. Tenga en cuenta que esa cuenta de prueba tiene cerca de 200.000 pesos que bajan por cada operacion que se hace. Tambien tenga en cuenta que si desea utilizar las tarjetas, estas tienen clave 123 o 1234 para AMEX. Las tarjetas de credito de prueba no generan operaciones en la base de datos.
 - Aunque las operaciones se ven reflejadas en la base de datos, usted puede entrar a mercado pago desde el navegador con cualquiera de las cuentas de vendedor (mp) o comprador (mp) y revisar que las operaciones son reales.
 
 ---
+
+## Descripción
+
+La aplicacion de pagos ReadCycle presenta un HUB donde se pueden revisar todas las operaciones que ofrece la plataforma.
+Nuestros usuarios pueden revisar las transacciones y disputas dentro de el HUB o acceder a verlas en detalle o en su totalidad. Tambien pueden generar disputas sobre transacciones creadas o generar nuevas transacciones.
+Los administradores del sitio no tienen un panel como tal ya que la aplicacion en si es un panel, por esto, la aplicacion para el admin se mantiene igual pero con agregados para las operaciones que le corresponden
+
+---
+
 Enunciado completo: <https://iaw-2026.github.io/proyecto/>
