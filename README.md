@@ -17,17 +17,17 @@ La aplicación está disponible en: [Vercel](https://proyecto-c-payments-readcyc
 
 ### Usuario comprador
 
-- Email: buyer+clerktest@iaw.com
+- Email: buyer+clerk_test@iaw.com
 - Contraseña: iawuser#
 
 ### Usuario vendedor
 
-- Email: seller+clerktest@iaw.com
+- Email: seller+clerk_test@iaw.com
 - Contraseña: iawuser#
 
 ### Administrador
 
-- Email: admin+clerktest@iaw.com
+- Email: admin+clerk_test@iaw.com
 - Contraseña: iawuser#
 
 ### Usuario comprador (MercadoPago)
