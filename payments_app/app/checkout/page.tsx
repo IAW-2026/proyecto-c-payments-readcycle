@@ -13,8 +13,8 @@ const cartItems = [
 
 // Datos mock centralizados de comprador y vendedor para no tener que mockear en las APIs
 const MOCK_CHECKOUT_DATA = {
-  buyerId: "cmpoj8m160001xcto3sxcs6n2", // Valentino Villar (comprador)
-  sellerId: "cmpon3asn0003xctoflgxiy95", // Alejo Quintana (vendedor)
+  buyerId: "cmpvkuebv000004jmxtaijm4u",
+  sellerId: "cmpvktnxo000004il0wci25pi",
 };
 
 export default function CheckoutPage() {
