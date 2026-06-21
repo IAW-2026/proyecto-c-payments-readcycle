@@ -1,33 +1,24 @@
-import { auth } from "@clerk/nextjs/server";
+import { authenticateRequest } from "@/lib/auth";
 import prisma from "@/prisma";
 import { NextResponse } from "next/server";
+import { UserRole } from "@prisma/client";
 
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId: clerkUserId } = await auth();
-
-    if (!clerkUserId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const user = await prisma.user.findUnique({
-      where: {
-        clerkUserId,
-      },
+    const authResult = await authenticateRequest(req, {
+      apiKeyEnvName: "DISPUTES_API_KEY",
+      virtualUserRole: UserRole.ADMIN,
+      allowedRoles: [UserRole.ADMIN, UserRole.BUYER, UserRole.SELLER],
     });
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+    if (authResult.errorResponse) {
+      return authResult.errorResponse;
     }
+
+    const user = authResult.user!;
 
     const { id } = await params;
 
@@ -119,19 +110,17 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId: clerkUserId } = await auth();
-
-    if (!clerkUserId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { clerkUserId },
+    const authResult = await authenticateRequest(req, {
+      apiKeyEnvName: "DISPUTES_API_KEY",
+      virtualUserRole: UserRole.ADMIN,
+      allowedRoles: [UserRole.ADMIN],
     });
 
-    if (!user || !user.roles.includes("ADMIN")) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (authResult.errorResponse) {
+      return authResult.errorResponse;
     }
+
+    const user = authResult.user!;
 
     const { id } = await params;
     const body = await req.json();

@@ -1,9 +1,21 @@
 import { MercadoPagoConfig, Preference } from 'mercadopago';
+import { authenticateRequest } from "@/lib/auth";
+import { UserRole } from "@prisma/client";
 
 const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN! });
 
 export async function POST(request: Request) {
   try {
+    const authResult = await authenticateRequest(request, {
+      apiKeyEnvName: "CHECKOUT_API_KEY",
+      virtualUserRole: UserRole.BUYER,
+      allowedRoles: [UserRole.BUYER, UserRole.ADMIN],
+    });
+
+    if (authResult.errorResponse) {
+      return authResult.errorResponse;
+    }
+
     const data = await request.json();
     const { items, buyerId, sellerId, orderId, returnUrl, baseUrl } = data;
 
