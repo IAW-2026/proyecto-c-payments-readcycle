@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
 
     const transactionStatus = mapMpStatus(payment.status!);
 
-    await prisma.transaction.upsert({
+    const transaction = await prisma.transaction.upsert({
       where: {
         mercadoPagoPaymentId: payment.id!.toString(),
       },
@@ -98,8 +98,43 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Forward transaction notification to seller's webhook
+    const sellerWebhookUrl = process.env.SELLER_WEBHOOK;
+    const sellerApiKey = process.env.SELLER_API_KEY;
+
+    if (sellerApiKey && sellerWebhookUrl) {
+      try {
+        console.log(`Forwarding transaction ${transaction.id} notification to seller's webhook...`);
+        const forwardPayload = {
+          id: transaction.id,
+          paymentId: transaction.id,
+          orderId: transaction.orderId,
+          status: transaction.status.toLowerCase(),
+        };
+
+        const response = await fetch(sellerWebhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": sellerApiKey,
+            "Authorization": `Bearer ${sellerApiKey}`,
+          },
+          body: JSON.stringify(forwardPayload),
+        });
+
+        const responseText = await response.text();
+        console.log(`Seller webhook response status: ${response.status}`);
+        console.log(`Seller webhook response body: ${responseText}`);
+      } catch (forwardError) {
+        console.error("Failed to forward transaction notification to seller's webhook:", forwardError);
+      }
+    } else {
+      console.warn("SELLER_API_KEY or SELLER_WEBHOOK is not defined in env variables. Skipping forwarding notification.");
+    }
+
     return NextResponse.json({
       success: true,
+      transactionId: transaction.id,
     });
   } catch (error) {
     console.error("Webhook processing error:", error);
