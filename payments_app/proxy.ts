@@ -6,6 +6,11 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
+  // Do not block API routes at the middleware level (they handle their own auth)
+  if (req.nextUrl.pathname.startsWith('/api')) {
+    return;
+  }
+  
   if (isProtectedRoute(req)) {
     await auth.protect();
   }
