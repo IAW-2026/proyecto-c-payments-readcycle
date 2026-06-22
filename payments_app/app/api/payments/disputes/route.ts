@@ -1,30 +1,21 @@
-import { auth } from "@clerk/nextjs/server";
+import { authenticateRequest } from "@/lib/auth";
 import prisma from "@/prisma";
 import { NextResponse } from "next/server";
+import { UserRole } from "@prisma/client";
 
 export async function GET(request: Request) {
   try {
-    const { userId: clerkUserId } = await auth();
-
-    if (!clerkUserId) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const user = await prisma.user.findUnique({
-      where: {
-        clerkUserId,
-      },
+    const authResult = await authenticateRequest(request, {
+      apiKeyEnvName: "DISPUTES_API_KEY",
+      virtualUserRole: UserRole.ADMIN,
+      allowedRoles: [UserRole.ADMIN, UserRole.BUYER, UserRole.SELLER],
     });
 
-    if (!user) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+    if (authResult.errorResponse) {
+      return authResult.errorResponse;
     }
+
+    const user = authResult.user!;
 
     const { searchParams } = new URL(request.url);
     const pageParam = searchParams.get("page");

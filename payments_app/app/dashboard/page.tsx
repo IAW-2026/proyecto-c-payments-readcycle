@@ -114,20 +114,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="mt-8 flex justify-center gap-12 sm:gap-20 z-10 w-full max-w-7xl mx-auto">
-        <Link
-          href="/checkout"
-          className="rounded-xl bg-brand-sage text-brand-beige px-8 py-4 font-bold shadow-md transition-all duration-300 hover:bg-brand-forest hover:-translate-y-0.5 active:translate-y-0 active:scale-95 cursor-pointer text-sm"
-        >
-          Simular Pago
-        </Link>
-        <Link
-          href="/dashboard/disputes/new"
-          className="rounded-xl bg-brand-clay text-brand-beige px-8 py-4 font-bold shadow-md transition-all duration-300 hover:bg-brand-clay/90 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 cursor-pointer text-sm"
-        >
-          Crear disputa
-        </Link>
-      </div>
+
     </main>
   );
 }

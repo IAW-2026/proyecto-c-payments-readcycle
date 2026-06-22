@@ -77,7 +77,7 @@ export default function DisputesPage() {
       <div className="absolute top-[-10%] right-[-10%] w-[350px] sm:w-[450px] h-[350px] sm:h-[450px] rounded-full bg-brand-sage/5 blur-[100px] sm:blur-[120px] pointer-events-none select-none z-0" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[350px] sm:w-[450px] h-[350px] sm:h-[450px] rounded-full bg-brand-clay/5 blur-[100px] sm:blur-[120px] pointer-events-none select-none z-0" />
 
-      <div className="mb-6 flex items-start justify-between z-10 w-full max-w-7xl mx-auto">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 z-10 w-full max-w-7xl mx-auto">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-brand-forest tracking-tight">
             Historial de disputas
@@ -86,16 +86,24 @@ export default function DisputesPage() {
             Historial detallado de las disputas accionadas por tu cuenta.
           </p>
         </div>
-
-        <Link href="/dashboard" className="z-10 shrink-0">
-          <Image
-            src="/LogoSinTexto.png"
-            alt="RC logo"
-            width={70}
-            height={20}
-            priority
-          />
-        </Link>
+        
+        <div className="flex items-center gap-4 z-10 shrink-0">
+          <Link
+            href="/dashboard/disputes/new"
+            className="rounded-xl bg-brand-clay text-brand-beige px-6 py-3 font-bold shadow-md transition-all duration-300 hover:bg-brand-clay/90 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 cursor-pointer text-sm"
+          >
+            Crear disputa
+          </Link>
+          <Link href="/dashboard" className="shrink-0">
+            <Image
+              src="/LogoSinTexto.png"
+              alt="RC logo"
+              width={70}
+              height={20}
+              priority
+            />
+          </Link>
+        </div>
       </div>
 
       <div className="z-10 w-full max-w-7xl mx-auto">
