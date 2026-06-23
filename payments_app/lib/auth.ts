@@ -156,14 +156,13 @@ export async function resolveOrCreateUser(idOrClerkId: string): Promise<string> 
     if (sellerBaseUrl && sellerApiKey) {
       try {
         const baseUrl = sellerBaseUrl.endsWith("/") ? sellerBaseUrl.slice(0, -1) : sellerBaseUrl;
-        const sellerUserUrl = `${baseUrl}/api/public/user/${idOrClerkId}`;
+        const sellerUserUrl = `${baseUrl}/api/public/user/id=${idOrClerkId}`;
         console.log(`Fetching Clerk ID from seller API: ${sellerUserUrl}`);
 
         const response = await fetch(sellerUserUrl, {
           method: "GET",
           headers: {
             "X-API-Key": sellerApiKey,
-            "Authorization": `Bearer ${sellerApiKey}`,
           },
         });
 
