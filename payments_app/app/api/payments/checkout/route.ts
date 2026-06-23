@@ -17,33 +17,37 @@ export async function POST(request: Request) {
     }
 
     const data = await request.json();
-    const { items, buyerId, sellerId, orderId, returnUrl, baseUrl } = data;
+    const { items, buyerId, sellerId, orderId, successUrl, failureUrl } = data;
 
-    if (!items || !buyerId || !sellerId || !returnUrl) {
-      return new Response(JSON.stringify({ error: 'Faltan datos requeridos (items, buyerId, sellerId, returnUrl)' }), {
+    if (!items || !buyerId || !sellerId || !successUrl || !failureUrl) {
+      return new Response(JSON.stringify({ error: 'Faltan datos requeridos (items, buyerId, sellerId, successUrl, failureUrl)' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // Obtener dinámicamente la URL base de nuestro servidor (payments_app)
-    const requestUrl = new URL(request.url);
-    const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || requestUrl.host;
-    const proto = request.headers.get('x-forwarded-proto') || 'https';
-    
-    // Si estamos en localhost, forzar http si el proto detectado no coincide
-    const detectedProtocol = host.includes('localhost') ? 'http' : proto;
-    const defaultBaseUrl = `${detectedProtocol}://${host}`;
-    
-    // Priorizamos siempre la URL de nuestro propio servidor detectada, y usamos baseUrl como fallback secundario
-    const serverBaseUrl = defaultBaseUrl || baseUrl;
-
-    const preference = new Preference(client);
-
-    // Construir la URL de notificación del webhook de forma dinámica usando la URL base detectada
+    // Obtener la URL de notificación (webhook)
     const webhookSecret = process.env.MP_WEBHOOK_SECRET || process.env.WEBHOOK_SECRET;
     const secretQuery = webhookSecret ? `?secret=${webhookSecret}` : "";
-    const notificationUrl = `${serverBaseUrl}/api/payments/checkout/mpHook${secretQuery}`;
+    
+    let finalNotificationUrl = process.env.MP_WEBHOOK_URL || process.env.WEBHOOK_URL;
+    if (!finalNotificationUrl) {
+      // Si no viene en el request ni en variables de entorno, la construimos dinámicamente usando la URL de la petición actual
+      const requestUrl = new URL(request.url);
+      const host = request.headers.get('x-forwarded-host') || request.headers.get('host') || requestUrl.host;
+      const proto = request.headers.get('x-forwarded-proto') || 'https';
+      const detectedProtocol = host.includes('localhost') ? 'http' : proto;
+      const defaultBaseUrl = `${detectedProtocol}://${host}`;
+      finalNotificationUrl = `${defaultBaseUrl}/api/payments/checkout/mpHook${secretQuery}`;
+    } else {
+      // Si viene de variables de entorno, aseguramos que tenga el secret anexado
+      if (webhookSecret && !finalNotificationUrl.includes('secret=')) {
+        const separator = finalNotificationUrl.includes('?') ? '&' : '?';
+        finalNotificationUrl = `${finalNotificationUrl}${separator}secret=${webhookSecret}`;
+      }
+    }
+
+    const preference = new Preference(client);
 
     const result = await preference.create({
       body: {
@@ -54,9 +58,9 @@ export async function POST(request: Request) {
           unit_price: item.unit_price,
         })),
         back_urls: {
-          success: returnUrl,
-          failure: returnUrl,
-          pending: returnUrl
+          success: successUrl,
+          failure: failureUrl,
+          pending: successUrl
         },
         auto_return: 'approved',
         metadata: {
@@ -65,7 +69,7 @@ export async function POST(request: Request) {
           order_id: orderId || `ORDER-${Date.now()}`
         },
         // Solo enviamos notification_url a Mercado Pago si es HTTPS
-        notification_url: notificationUrl.startsWith('https') ? notificationUrl : undefined,
+        notification_url: finalNotificationUrl && finalNotificationUrl.startsWith('https') ? finalNotificationUrl : undefined,
       }
     });
 

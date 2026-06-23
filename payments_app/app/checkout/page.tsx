@@ -37,7 +37,8 @@ export default function CheckoutPage() {
 
       // Obtener dinámicamente la URL base actual desde la ventana del navegador del usuario
       const currentOrigin = window.location.origin;
-      const dynamicReturnUrl = `${currentOrigin}/dashboard/transactions`;
+      const successUrl = `${currentOrigin}/dashboard/transactions`;
+      const failureUrl = `${currentOrigin}/dashboard/transactions`;
 
       const res = await fetch(
         '/api/payments/checkout',
@@ -51,8 +52,8 @@ export default function CheckoutPage() {
             buyerId: MOCK_CHECKOUT_DATA.buyerId,
             sellerId: MOCK_CHECKOUT_DATA.sellerId,
             orderId: orderId,
-            returnUrl: dynamicReturnUrl,
-            baseUrl: currentOrigin,
+            successUrl: successUrl,
+            failureUrl: failureUrl,
             items: cartItems.map((item) => ({
               id: item.id,
               title: item.title,
