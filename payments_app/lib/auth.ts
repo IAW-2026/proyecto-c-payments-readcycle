@@ -139,11 +139,64 @@ export async function resolveOrCreateUser(idOrClerkId: string): Promise<string> 
     return user.id;
   }
 
-  // 3. Fetch from Clerk and create database record if it's a Clerk User ID
-  if (idOrClerkId.startsWith("user_")) {
+  let resolvedClerkId = idOrClerkId;
+
+  // 3. If it does not start with "user_", it might be the seller's internal database ID.
+  // We query the seller's API (using SELLER_ID_WEBHOOK) to translate it to their Clerk ID.
+  if (!idOrClerkId.startsWith("user_")) {
+    let sellerBaseUrl = process.env.SELLER_ID_WEBHOOK;
+    if (!sellerBaseUrl && process.env.SELLER_WEBHOOK) {
+      try {
+        sellerBaseUrl = new URL(process.env.SELLER_WEBHOOK).origin;
+      } catch (e) {
+        console.error("Invalid SELLER_WEBHOOK URL format", e);
+      }
+    }
+    const sellerApiKey = process.env.SELLER_API_KEY;
+    if (sellerBaseUrl && sellerApiKey) {
+      try {
+        const baseUrl = sellerBaseUrl.endsWith("/") ? sellerBaseUrl.slice(0, -1) : sellerBaseUrl;
+        const sellerUserUrl = `${baseUrl}/api/public/user/${idOrClerkId}`;
+        console.log(`Fetching Clerk ID from seller API: ${sellerUserUrl}`);
+
+        const response = await fetch(sellerUserUrl, {
+          method: "GET",
+          headers: {
+            "X-API-Key": sellerApiKey,
+            "Authorization": `Bearer ${sellerApiKey}`,
+          },
+        });
+
+        if (response.ok) {
+          const sellerUserData = await response.json();
+          console.log("Seller API user response:", sellerUserData);
+          const clerkId = sellerUserData.clerkUserId || sellerUserData.clerkId || sellerUserData.clerk_user_id;
+          if (clerkId) {
+            resolvedClerkId = clerkId;
+            console.log(`Resolved seller local ID ${idOrClerkId} to Clerk ID ${clerkId}`);
+
+            // Check if this resolved Clerk ID already exists in our database
+            user = await prisma.user.findUnique({
+              where: { clerkUserId: resolvedClerkId },
+            });
+            if (user) {
+              return user.id;
+            }
+          }
+        } else {
+          console.error(`Seller API returned status ${response.status} when fetching user ${idOrClerkId}`);
+        }
+      } catch (fetchError) {
+        console.error(`Error calling seller API for user ${idOrClerkId}:`, fetchError);
+      }
+    }
+  }
+
+  // 4. Fetch from Clerk and create database record if it's a Clerk User ID
+  if (resolvedClerkId.startsWith("user_")) {
     try {
       const client = await clerkClient();
-      const clerkUser = await client.users.getUser(idOrClerkId);
+      const clerkUser = await client.users.getUser(resolvedClerkId);
       if (clerkUser) {
         const currentRoles = (clerkUser.publicMetadata?.roles as string[]) || [];
         let userRole: UserRole = UserRole.BUYER;
@@ -155,7 +208,7 @@ export async function resolveOrCreateUser(idOrClerkId: string): Promise<string> 
 
         const newUser = await prisma.user.create({
           data: {
-            clerkUserId: idOrClerkId,
+            clerkUserId: resolvedClerkId,
             name: clerkUser.firstName || "",
             surname: clerkUser.lastName || "",
             email: clerkUser.emailAddresses[0]?.emailAddress || "",
@@ -165,10 +218,10 @@ export async function resolveOrCreateUser(idOrClerkId: string): Promise<string> 
         return newUser.id;
       }
     } catch (clerkError) {
-      console.error(`Failed to fetch/create user ${idOrClerkId} from Clerk:`, clerkError);
+      console.error(`Failed to fetch/create user ${resolvedClerkId} from Clerk:`, clerkError);
     }
   }
 
-  return idOrClerkId;
+  return resolvedClerkId;
 }
 
