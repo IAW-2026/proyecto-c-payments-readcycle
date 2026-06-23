@@ -1,6 +1,7 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import prisma from "@/prisma";
 import { UserRole } from "@prisma/client";
+
 
 export type AuthenticatedUser = {
   id: string;
@@ -116,3 +117,58 @@ export async function authenticateRequest(
     };
   }
 }
+
+export async function resolveOrCreateUser(idOrClerkId: string): Promise<string> {
+  if (!idOrClerkId) return idOrClerkId;
+
+  // 1. Try finding by database CUID (User.id)
+  let user = await prisma.user.findUnique({
+    where: { id: idOrClerkId },
+  });
+
+  if (user) {
+    return user.id;
+  }
+
+  // 2. Try finding by Clerk User ID (User.clerkUserId)
+  user = await prisma.user.findUnique({
+    where: { clerkUserId: idOrClerkId },
+  });
+
+  if (user) {
+    return user.id;
+  }
+
+  // 3. Fetch from Clerk and create database record if it's a Clerk User ID
+  if (idOrClerkId.startsWith("user_")) {
+    try {
+      const client = await clerkClient();
+      const clerkUser = await client.users.getUser(idOrClerkId);
+      if (clerkUser) {
+        const currentRoles = (clerkUser.publicMetadata?.roles as string[]) || [];
+        let userRole: UserRole = UserRole.BUYER;
+        if (currentRoles.includes("ADMIN")) {
+          userRole = UserRole.ADMIN;
+        } else if (currentRoles.includes("SELLER")) {
+          userRole = UserRole.SELLER;
+        }
+
+        const newUser = await prisma.user.create({
+          data: {
+            clerkUserId: idOrClerkId,
+            name: clerkUser.firstName || "",
+            surname: clerkUser.lastName || "",
+            email: clerkUser.emailAddresses[0]?.emailAddress || "",
+            roles: [userRole],
+          },
+        });
+        return newUser.id;
+      }
+    } catch (clerkError) {
+      console.error(`Failed to fetch/create user ${idOrClerkId} from Clerk:`, clerkError);
+    }
+  }
+
+  return idOrClerkId;
+}
+

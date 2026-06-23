@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/prisma";
 import { MercadoPagoConfig, Payment } from "mercadopago";
 import { TransactionStatus } from "@prisma/client";
+import { resolveOrCreateUser } from "@/lib/auth";
+
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN!,
@@ -60,11 +62,11 @@ export async function POST(req: NextRequest) {
     });
 
     const metadata = payment.metadata || {};
-    const buyerId = metadata.buyer_id || metadata.buyerId;
-    const sellerId = metadata.seller_id || metadata.sellerId;
+    const buyerIdRaw = metadata.buyer_id || metadata.buyerId;
+    const sellerIdRaw = metadata.seller_id || metadata.sellerId;
     const orderId = metadata.order_id || metadata.orderId || `ORDER-${payment.id}`;
 
-    if (!buyerId || !sellerId) {
+    if (!buyerIdRaw || !sellerIdRaw) {
       return NextResponse.json(
         {
           error: "Missing buyerId or sellerId in payment metadata",
@@ -74,6 +76,10 @@ export async function POST(req: NextRequest) {
         }
       );
     }
+
+    const buyerId = await resolveOrCreateUser(buyerIdRaw);
+    const sellerId = await resolveOrCreateUser(sellerIdRaw);
+
 
     const transactionStatus = mapMpStatus(payment.status!);
 
@@ -116,8 +122,7 @@ export async function POST(req: NextRequest) {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-api-key": sellerApiKey,
-            "Authorization": `Bearer ${sellerApiKey}`,
+            "X-API-Key": sellerApiKey,
           },
           body: JSON.stringify(forwardPayload),
         });

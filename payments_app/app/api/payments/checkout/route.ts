@@ -1,6 +1,7 @@
 import { MercadoPagoConfig, Preference } from 'mercadopago';
-import { authenticateRequest } from "@/lib/auth";
+import { authenticateRequest, resolveOrCreateUser } from "@/lib/auth";
 import { UserRole } from "@prisma/client";
+
 
 const client = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN! });
 
@@ -25,6 +26,11 @@ export async function POST(request: Request) {
         headers: { 'Content-Type': 'application/json' }
       });
     }
+
+    // Resolve buyerId and sellerId to database CUIDs (and create if they exist in Clerk but not in DB)
+    const resolvedBuyerId = await resolveOrCreateUser(buyerId);
+    const resolvedSellerId = await resolveOrCreateUser(sellerId);
+
 
     // Obtener la URL de notificación (webhook)
     const webhookSecret = process.env.MP_WEBHOOK_SECRET || process.env.WEBHOOK_SECRET;
@@ -64,10 +70,11 @@ export async function POST(request: Request) {
         },
         auto_return: 'approved',
         metadata: {
-          buyer_id: buyerId,
-          seller_id: sellerId,
+          buyer_id: resolvedBuyerId,
+          seller_id: resolvedSellerId,
           order_id: orderId || `ORDER-${Date.now()}`
         },
+
         // Solo enviamos notification_url a Mercado Pago si es HTTPS
         notification_url: finalNotificationUrl && finalNotificationUrl.startsWith('https') ? finalNotificationUrl : undefined,
       }
