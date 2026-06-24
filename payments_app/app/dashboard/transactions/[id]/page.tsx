@@ -7,6 +7,7 @@ import { useUser } from "@clerk/nextjs";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import ErrorCard from "@/components/ui/ErrorCard";
+import { useToastAndModal } from "@/components/ui/ToastAndModal";
 
 interface Transaction {
   id: string;
@@ -25,6 +26,7 @@ export default function PaymentPage() {
   const [error, setError] = useState<string | null>(null);
 
   const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
+  const { toast } = useToastAndModal();
 
   const [newStatus, setNewStatus] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
@@ -91,7 +93,7 @@ export default function PaymentPage() {
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
       console.error(err);
-      alert("Error al guardar los cambios");
+      toast.error("Error al guardar los cambios");
     } finally {
       setIsSaving(false);
     }

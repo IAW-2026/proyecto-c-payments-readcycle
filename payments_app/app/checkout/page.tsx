@@ -1,6 +1,7 @@
 'use client';
 import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
 import { useEffect, useState } from "react";
+import { useToastAndModal } from "@/components/ui/ToastAndModal";
 
 const cartItems = [
   {
@@ -18,6 +19,7 @@ const MOCK_CHECKOUT_DATA = {
 };
 
 export default function CheckoutPage() {
+  const { toast } = useToastAndModal();
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -73,7 +75,7 @@ export default function CheckoutPage() {
       setPreferenceId(data.id);
     } catch (error: any) {
       console.error(error);
-      alert(error.message || 'Error al procesar el pago');
+      toast.error(error.message || 'Error al procesar el pago');
     } finally {
       setLoading(false);
     }

@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import "../styles/globals.css";
 import AuthButtons from "../components/ui/AuthButtons";
+import { ToastAndModalProvider } from "@/components/ui/ToastAndModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,22 +34,24 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-brand-beige text-zinc-900 selection:bg-brand-sage/20">
         <ClerkProvider>
-          <header className="w-full border-b border-brand-sand/40 bg-brand-beige/70 backdrop-blur-md sticky top-0 z-50 transition-all">
-            <div className="max-w-7xl mx-auto flex justify-between items-center px-6 md:px-8 h-16">
-              <Link href="/" className="transition-opacity hover:opacity-90 flex items-center gap-2">
-                <Image
-                  src="/e71ac032-2a49-4210-88e3-a2ea411acb84-removebg-preview.png"
-                  alt="ReadCycle Logo"
-                  width={180}
-                  height={45}
-                  priority
-                  className="h-11 sm:h-12 w-auto object-contain"
-                />
-              </Link>
-              <AuthButtons />
-            </div>
-          </header>
-          {children}
+          <ToastAndModalProvider>
+            <header className="w-full border-b border-brand-sand/40 bg-brand-beige/70 backdrop-blur-md sticky top-0 z-50 transition-all">
+              <div className="max-w-7xl mx-auto flex justify-between items-center px-6 md:px-8 h-16">
+                <Link href="/" className="transition-opacity hover:opacity-90 flex items-center gap-2">
+                  <Image
+                    src="/e71ac032-2a49-4210-88e3-a2ea411acb84-removebg-preview.png"
+                    alt="ReadCycle Logo"
+                    width={180}
+                    height={45}
+                    priority
+                    className="h-11 sm:h-12 w-auto object-contain"
+                  />
+                </Link>
+                <AuthButtons />
+              </div>
+            </header>
+            {children}
+          </ToastAndModalProvider>
         </ClerkProvider>
       </body>
     </html>

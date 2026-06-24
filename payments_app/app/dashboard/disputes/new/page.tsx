@@ -2,9 +2,11 @@
 
 import { useRouter } from "next/dist/client/components/navigation";
 import { useState, useEffect } from "react";
+import { useToastAndModal } from "@/components/ui/ToastAndModal";
 
 export default function CreateDisputePage() {
   const router = useRouter();
+  const { toast } = useToastAndModal();
   const [transactionId, setTransactionId] = useState("");
   const [reason, setReason] = useState("");
 
@@ -60,11 +62,11 @@ export default function CreateDisputePage() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error || "Error creating dispute");
+        toast.error(data.error || "Error al crear la disputa");
         return;
       }
 
-      alert("Disputa creada correctamente");
+      toast.success("Disputa creada correctamente");
 
       setTransactionId("");
       setReason("");
@@ -72,7 +74,7 @@ export default function CreateDisputePage() {
     } catch (error) {
       console.error(error);
 
-      alert("Unexpected error");
+      toast.error("Ocurrió un error inesperado");
 
     } finally {
       setLoading(false);

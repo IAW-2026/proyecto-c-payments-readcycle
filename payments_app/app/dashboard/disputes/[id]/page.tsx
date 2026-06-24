@@ -19,6 +19,7 @@ interface Dispute {
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import ErrorCard from "@/components/ui/ErrorCard";
+import { useToastAndModal } from "@/components/ui/ToastAndModal";
 
 export default function DisputePage() {
   const params = useParams();
@@ -28,6 +29,7 @@ export default function DisputePage() {
   const [error, setError] = useState<string | null>(null);
 
   const { user: clerkUser, isLoaded: clerkLoaded } = useUser();
+  const { toast } = useToastAndModal();
 
   const [newStatus, setNewStatus] = useState<string>("");
   const [newResolution, setNewResolution] = useState<string>("");
@@ -96,7 +98,7 @@ export default function DisputePage() {
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
       console.error(err);
-      alert("Error al guardar los cambios");
+      toast.error("Error al guardar los cambios");
     } finally {
       setIsSaving(false);
     }
